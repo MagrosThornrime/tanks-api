@@ -1,4 +1,4 @@
 results.json
 venv/
 .env
-graph.py
+__pycache__/

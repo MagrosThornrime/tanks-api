@@ -17,14 +17,14 @@ tank_types = {
     "ht": "heavyTank",
     "mt": "mediumTank",
     "lt": "lightTank",
-    "spg": "SPG"
+    "arty": "SPG"
 }
 
 async def main():
     async with aiohttp.ClientSession() as session:
         client = RateLimiter(session)
         print(await grind(client, WOT_KEY, "ussr", "BT-5", "T-10"))
-        print(await alpha(client, WOT_KEY, nation="usa", tank_type=tank_types["mt"], tier=7))
+        print(await alpha(client, WOT_KEY, tank_type=tank_types["arty"], tier=6))
 
 
 asyncio.run(main())

@@ -1,4 +1,8 @@
 from dataclasses import dataclass
+import json
+
+import aiohttp
+
 
 @dataclass
 class Cost:
@@ -121,3 +125,17 @@ def get_grind_path(tanks: dict, current_tank_name: str, goal_tank_name: str) -> 
         "xp": cost.xp,
         "credits": cost.credits
     }
+
+
+async def grind(wot_key: str, nation: str, start_tank: str, goal_tank: str) -> dict:
+    uri = f"https://api.worldoftanks.eu/wot/encyclopedia/vehicles/?application_id={wot_key}&nation={nation}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(uri) as resp:
+            if resp.status != 200:
+                raise ValueError(resp.status)
+            text = await resp.text()
+            tanks = json.loads(text)["data"]
+            for tank_id in tanks.keys():
+                tanks[tank_id]["provisions"] = []
+            return get_grind_path(tanks, start_tank, goal_tank)
+        #except aiohttp.ClientConnectionError as e:

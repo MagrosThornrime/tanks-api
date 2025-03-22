@@ -2,18 +2,29 @@ from dotenv import load_dotenv
 import os
 
 import asyncio
+import aiohttp
 
 from grind import grind
+from alpha import alpha
+from rate_limiter import RateLimiter
 
 
 load_dotenv()
 WOT_KEY = os.getenv("WOT_KEY")            
 
-
+tank_types = {
+    "td": "AT-SPG",
+    "ht": "heavyTank",
+    "mt": "mediumTank",
+    "lt": "lightTank",
+    "spg": "SPG"
+}
 
 async def main():
-    return print(await grind(WOT_KEY, "ussr", "BT-5", "T-10"))
-    # await alpha(WOT_KEY, nation="poland", tank_type="heavyTank")
+    async with aiohttp.ClientSession() as session:
+        client = RateLimiter(session)
+        print(await grind(client, WOT_KEY, "ussr", "BT-5", "T-10"))
+        print(await alpha(client, WOT_KEY, nation="usa", tank_type=tank_types["mt"], tier=7))
 
 
 asyncio.run(main())

@@ -6,6 +6,15 @@ import asyncio
 from rate_limiter import RateLimiter
 
 
+tank_types = {
+    "td": "AT-SPG",
+    "ht": "heavyTank",
+    "mt": "mediumTank",
+    "lt": "lightTank",
+    "arty": "SPG"
+}
+
+
 async def get_alpha(session: RateLimiter, wot_key: str, gun_id: str) -> int:
     uri = "https://api.worldoftanks.eu/wot/encyclopedia/modules/?"
     uri += f"application_id={wot_key}&extra=default_profile&module_id={gun_id}"
@@ -45,7 +54,8 @@ async def alpha(session: aiohttp.ClientSession, wot_key: str, nation: str = None
     if tier is not None:
         uri += f"&tier={tier}"
     if tank_type is not None:
-        uri += f"&type={tank_type}"
+        real_type = tank_types[tank_type]
+        uri += f"&type={real_type}"
     async with await session.get(uri) as resp:
         if resp.status != 200:
             raise ValueError(resp.status)

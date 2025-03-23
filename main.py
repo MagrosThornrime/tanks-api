@@ -37,25 +37,30 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="static",html=True), name="static")
 
-responses = {
+responses_grind = {
     404: {"model": Message},
     502: {"model": Message}
 }
 
+responses_alpha = {
+    404: {"model": Message},
+    502: {"model": Message},
+    422: {"model": Message}
+}
 
-@app.get("/grind_path", response_model=Path, responses=responses)
+@app.get("/grind_path", response_model=Path, responses=responses_grind)
 async def grind_path(nation: str, start_tank: str, end_tank: str):
     try:
         return await grind(client, WOT_KEY, nation, start_tank, end_tank)
     except err.TankNotFoundError as e:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": str(e)})
     except err.GrindPathError as e:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": str(e)})
+        return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content={"message": str(e)})
     except err.ExternalAPIError as e:
         return JSONResponse(status_code=status.HTTP_502_BAD_GATEWAY, content={"message": str(e)})
 
 
-@app.get("/max_alpha", response_model=MaxAlpha, responses=responses)
+@app.get("/max_alpha", response_model=MaxAlpha, responses=responses_alpha)
 async def max_alpha(nation: str = None, tank_type: str = None, tier: int = None):
     try:
         return await alpha(client, WOT_KEY, nation=nation, tank_type=tank_type, tier=tier)

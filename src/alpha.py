@@ -4,7 +4,7 @@ import aiohttp
 import asyncio
 
 from src.rate_limiter import RateLimiter
-
+import src.exceptions as err
 
 tank_types = {
     "td": "AT-SPG",
@@ -20,7 +20,7 @@ async def get_alpha(session: RateLimiter, wot_key: str, gun_id: str) -> int:
     uri += f"application_id={wot_key}&extra=default_profile&module_id={gun_id}"
     async with await session.get(uri) as resp:
         if resp.status != 200:
-            raise ValueError(resp.status)
+            raise err.ExternalAPIError(f"WoT modules request status: '{resp.status}'")
         text = await resp.text()
     guns = json.loads(text)["data"]
     gun = guns[gun_id]["default_profile"]["gun"]
@@ -58,11 +58,14 @@ async def alpha(session: aiohttp.ClientSession, wot_key: str, nation: str = None
         uri += f"&type={real_type}"
     async with await session.get(uri) as resp:
         if resp.status != 200:
-            raise ValueError(resp.status)
+            raise err.ExternalAPIError(f"WoT vehicles request status: '{resp.status}'")
         text = await resp.text()
     tanks = json.loads(text)["data"]
     max_alpha, max_tank_id = await get_max_alpha(session, wot_key, tanks)
-    max_tank_name = tanks[max_tank_id]["name"]
+    try:
+        max_tank_name = tanks[max_tank_id]["name"]
+    except KeyError:
+        raise err.NoVehiclesError(f"The group has no vehicles")
     return {
         "tank": max_tank_name,
         "max_alpha": max_alpha

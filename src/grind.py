@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import json
 
 from src.rate_limiter import RateLimiter
-
+import src.exceptions as err
 
 
 @dataclass
@@ -67,7 +67,7 @@ def tank_research_price(tanks: dict, current_tank_id: str, next_tank_id: str) ->
 def get_next_tank_costs(tanks: dict, current_tank_name: str) -> dict[str, Cost]:
     current_tank = find_tank(tanks, current_tank_name)
     if current_tank is None:
-        raise ValueError("Tank not found")
+        raise err.TankNotFoundError(f"Tank not found: '{current_tank_name}'")
     modules = current_tank["modules_tree"]
     visited = {module: False for module in modules}
     tanks_found = {}
@@ -109,16 +109,16 @@ def traverse_tanks(tanks: dict, current_tank_id: str, goal_tank_id: str,
 def get_grind_path(tanks: dict, current_tank_name: str, goal_tank_name: str) -> Cost:
     current_tank = find_tank(tanks, current_tank_name)
     if current_tank is None:
-        raise ValueError("Current tank not found")
+        raise err.TankNotFoundError(f"Tank not found: '{current_tank_name}'")
     goal_tank = find_tank(tanks, goal_tank_name)
     if goal_tank is None:
-        raise ValueError("Goal tank not found")
+        raise err.TankNotFoundError(f"Tank not found: '{goal_tank_name}'")
     
     current_tank_id = str(current_tank["tank_id"])
     goal_tank_id = str(goal_tank["tank_id"])
     cost, path = traverse_tanks(tanks, current_tank_id, goal_tank_id, (), Cost())
     if cost is None:
-        raise ValueError("Path not found")
+        raise err.GrindPathError(f"Path from '{current_tank_name}' to '{goal_tank_name}' not found")
     path = (current_tank_id,) + path
     path_names = [tanks[tank_id]["name"] for tank_id in path]
     return {
@@ -133,7 +133,7 @@ async def grind(session: RateLimiter, wot_key: str, nation: str,
     uri = f"https://api.worldoftanks.eu/wot/encyclopedia/vehicles/?application_id={wot_key}&nation={nation}"
     async with await session.get(uri) as resp:
         if resp.status != 200:
-            raise ValueError(resp.status)
+            raise err.ExternalAPIError(f"WoT vehicles request status: '{resp.status}'")
         text = await resp.text()
     tanks = json.loads(text)["data"]
     return get_grind_path(tanks, start_tank, goal_tank)

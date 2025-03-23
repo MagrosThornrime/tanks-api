@@ -1,8 +1,10 @@
 from dotenv import load_dotenv
 import os
+from contextlib import asynccontextmanager
 
 import asyncio
 import aiohttp
+from fastapi import FastAPI
 
 from grind import grind
 from alpha import alpha
@@ -11,14 +13,28 @@ from rate_limiter import RateLimiter
 
 load_dotenv()
 WOT_KEY = os.getenv("WOT_KEY")            
+session = None
+client = None
 
 
-async def main():
-    async with aiohttp.ClientSession() as session:
-        client = RateLimiter(session)
-        print(await grind(client, WOT_KEY, "ussr", "BT-5", "T-10"))
-        print(await alpha(client, WOT_KEY, tank_type="arty", tier=6))
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global session
+    global client
+    session = aiohttp.ClientSession()
+    client = RateLimiter(session)
+    yield
+    await session.close()
 
 
-asyncio.run(main())
+app = FastAPI(lifespan=lifespan)
 
+
+@app.get("/grind_path")
+async def grind_path(nation: str, start_tank: str, end_tank: str):
+    return await grind(client, WOT_KEY, nation, start_tank, end_tank)
+
+
+@app.get("/max_alpha")
+async def max_alpha(nation: str = None, tank_type: str = None, tier: int = None):
+    return await alpha(client, WOT_KEY, nation=nation, tank_type=tank_type, tier=tier)

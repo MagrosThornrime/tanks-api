@@ -3,7 +3,7 @@ import json
 import aiohttp
 import asyncio
 
-from rate_limiter import RateLimiter
+from src.rate_limiter import RateLimiter
 
 
 tank_types = {

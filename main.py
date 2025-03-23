@@ -4,10 +4,11 @@ from contextlib import asynccontextmanager
 
 import aiohttp
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
-from grind import grind
-from alpha import alpha
-from rate_limiter import RateLimiter
+from src.grind import grind
+from src.alpha import alpha
+from src.rate_limiter import RateLimiter
 
 
 load_dotenv()
@@ -27,7 +28,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
+app.mount("/static", StaticFiles(directory="static",html=True), name="static")
 
 @app.get("/grind_path")
 async def grind_path(nation: str, start_tank: str, end_tank: str):

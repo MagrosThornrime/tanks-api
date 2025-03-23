@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import json
 
-from rate_limiter import RateLimiter
+from src.rate_limiter import RateLimiter
 
 
 

@@ -2,6 +2,7 @@ import json
 
 import aiohttp
 import asyncio
+from pydantic import BaseModel
 
 from src.rate_limiter import RateLimiter
 import src.exceptions as err
@@ -13,6 +14,11 @@ tank_types = {
     "lt": "lightTank",
     "arty": "SPG"
 }
+
+
+class MaxAlpha(BaseModel):
+    tank: str
+    max_alpha: int
 
 
 async def get_alpha(session: RateLimiter, wot_key: str, gun_id: str) -> int:

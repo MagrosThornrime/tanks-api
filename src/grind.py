@@ -3,7 +3,12 @@ import json
 
 from src.rate_limiter import RateLimiter
 import src.exceptions as err
+from pydantic import BaseModel
 
+class Path(BaseModel):
+    path: list[str]
+    credits: str
+    xp: str
 
 @dataclass
 class Cost:

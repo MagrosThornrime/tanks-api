@@ -136,7 +136,4 @@ async def grind(session: RateLimiter, wot_key: str, nation: str,
             raise ValueError(resp.status)
         text = await resp.text()
     tanks = json.loads(text)["data"]
-    # for tank_id in tanks.keys():
-    #     tanks[tank_id]["provisions"] = []
     return get_grind_path(tanks, start_tank, goal_tank)
-    #except aiohttp.ClientConnectionError as e:

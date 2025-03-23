@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 import os
 from contextlib import asynccontextmanager
 
-import asyncio
 import aiohttp
 from fastapi import FastAPI
 
